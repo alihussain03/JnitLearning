@@ -40,3 +40,7 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+.idea/sonarlint/
+.idea/.name
+.idea/sonarlint/issuestore/index.pb/
