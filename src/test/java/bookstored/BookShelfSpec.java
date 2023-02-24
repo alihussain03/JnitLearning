@@ -1,6 +1,5 @@
 package bookstored;
 
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,11 +12,11 @@ import bookstoread.BookShelf;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,6 @@ public class BookShelfSpec {
   private Book effectiveJava;
   private Book codeComplete;
   private Book mythicalManMonth;
-
   private Book cleanCode;
 
   @BeforeEach
@@ -39,22 +37,23 @@ public class BookShelfSpec {
     codeComplete = new Book("Code Complete", "Steve McConnel", LocalDate.of(2004, Month.JUNE, 9));
     mythicalManMonth = new Book("The Mythical Man-Month", "Frederick Phillips Brooks",
         LocalDate.of(1975, Month.JANUARY, 1));
-    cleanCode = new Book("Clean Code", " Games", LocalDate.of(2000, Month.MARCH, 1));
-
+    cleanCode = new Book("Clean Code", "Robert C. Martin", LocalDate.of(2008, Month.AUGUST, 1));
   }
 
   @Nested
   @DisplayName("is empty")
-  class isEmpty {
+  class IsEmpty {
 
     @Test
-    public void shelfEmptyWhenNoBookAdded() throws Exception {
+    @DisplayName("when no book is added to it")
+    public void emptyBookShelfWhenNoBookAdded() {
       List<Book> books = shelf.books();
       assertTrue(books.isEmpty(), () -> "BookShelf should be empty.");
     }
 
     @Test
-    public void emptyBookShelfWhenAddIsCalledWithoutBooks() {
+    @DisplayName("when add is called without books")
+    void emptyBookShelfWhenAddIsCalledWithoutBooks() {
       shelf.add();
       List<Book> books = shelf.books();
       assertTrue(books.isEmpty(), () -> "BookShelf should be empty.");
@@ -66,7 +65,7 @@ public class BookShelfSpec {
   class BooksAreAdded {
 
     @Test
-    void bookshelfContainsTwoBooksWhenTwoBooksAdded() {
+    public void bookshelfContainsTwoBooksWhenTwoBooksAdded() {
       shelf.add(effectiveJava, codeComplete);
       List<Book> books = shelf.books();
       assertEquals(2, books.size(), () -> "BookShelf should have two books.");
@@ -84,13 +83,15 @@ public class BookShelfSpec {
             () -> "Should throw UnsupportedOperationException.");
       }
     }
-
   }
 
   @Nested
   @DisplayName("is arranged")
-  class BooksAreArranged {
+  class BooksArrange {
 
+    /*
+     * Second Feature
+     * */
     @Test
     @DisplayName("bookshelf is arranged lexicographically by book title")
     void bookshelfArrangedByBookTitle() {
@@ -109,48 +110,30 @@ public class BookShelfSpec {
           () -> "Books in bookshelf are in insertion order");
     }
 
+    // @Disabled("Needs to implement Comparator")
     @Test
     void bookshelfArrangedByUserProvidedCriteria() {
       shelf.add(effectiveJava, codeComplete, mythicalManMonth);
-      List<Book> books = shelf.arrange(Comparator.<Book>naturalOrder().reversed());
-      assertEquals(
-          asList(mythicalManMonth, effectiveJava, codeComplete),
-          books,
-          () -> "Books in a bookshelf are arranged in descending order of book title");
-    }
-
-    @Test
-    @Disabled("Needs to implement Comparator")
-    void bookshelfArrangedByPublicationDate() {
-      shelf.add(effectiveJava, codeComplete, mythicalManMonth);
-      List<Book> books = shelf.arrange(Comparator.<Book>naturalOrder().reversed());
-      //  Comparator.<Book>comparing(book -> book.getPublishedOn()).reversed();
-      assertEquals(
-          asList(mythicalManMonth, effectiveJava, codeComplete),
-          books,
-          () -> "Books in a bookshelf are arranged in descending order of book title");
-    }
-
-    @Test
-    void bookshelfArrangedByUserProvidedCriteria1() {
-      shelf.add(effectiveJava, codeComplete, mythicalManMonth);
       Comparator<Book> reversed = Comparator.<Book>naturalOrder().reversed();
       List<Book> books = shelf.arrange(reversed);
+      assertEquals(
+          asList(mythicalManMonth, effectiveJava, codeComplete),
+          books,
+          () -> "Books in a bookshelf are arranged in descending order of book title");
+
       assertThat(books).isSortedAccordingTo(reversed);
     }
 
     @Test
     @DisplayName("books inside bookshelf are grouped by publication year")
     void groupBooksInsideBookShelfByPublicationYear() {
-      shelf.add(effectiveJava, codeComplete, mythicalManMonth);
+      shelf.add(effectiveJava, codeComplete, mythicalManMonth, cleanCode);
 
       Map<Year, List<Book>> booksByPublicationYear = shelf.groupByPublicationYear();
 
-    /*
-    assertThat(booksByPublicationYear)
-        .containsKey(Year.of(2008))
-        .containsValues(Arrays.asList(effectiveJava, cleanCode));
-    */
+      assertThat(booksByPublicationYear)
+          .containsKey(Year.of(2008))
+          .containsValues(Arrays.asList(effectiveJava, cleanCode));
 
       assertThat(booksByPublicationYear)
           .containsKey(Year.of(2004))
@@ -159,12 +142,13 @@ public class BookShelfSpec {
       assertThat(booksByPublicationYear)
           .containsKey(Year.of(1975))
           .containsValues(singletonList(mythicalManMonth));
+
     }
 
     @Test
     @DisplayName("books inside bookshelf are grouped according to user provided criteria(group by author name)")
     void groupBooksByUserProvidedCriteria() {
-      shelf.add(effectiveJava, codeComplete, mythicalManMonth);
+      shelf.add(effectiveJava, codeComplete, mythicalManMonth, cleanCode);
       Map<String, List<Book>> booksByAuthor = shelf.groupBy(Book::getAuthor);
 
       assertThat(booksByAuthor)
@@ -179,13 +163,10 @@ public class BookShelfSpec {
           .containsKey("Frederick Phillips Brooks")
           .containsValues(singletonList(mythicalManMonth));
 
-    /*
-    assertThat(booksByAuthor)
-        .containsKey("Robert C. Martin")
-        .containsValues(singletonList(cleanCode));
-    */
+      assertThat(booksByAuthor)
+          .containsKey("Robert C. Martin")
+          .containsValues(singletonList(cleanCode));
     }
+
   }
-
-
 }

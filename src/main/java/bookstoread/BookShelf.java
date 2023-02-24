@@ -14,11 +14,13 @@ import java.util.stream.Collectors;
 
 public class BookShelf {
 
-  private final List<Book> books = new ArrayList<>();
+  private List<Book> books = new ArrayList<>();
 
+  /* public List<String> books() {
+     return books;
+   }
+ */
   public List<Book> books() {
-    // return Collections.emptyList();
-    //  return books;
     return Collections.unmodifiableList(books);
   }
 
@@ -26,20 +28,12 @@ public class BookShelf {
     Arrays.stream(booksToAdd).forEach(books::add);
   }
 
-  /*public List<String> arrange() {
-    return books.stream().sorted().collect(Collectors.toList());
- //   books.sort(Comparator.naturalOrder());
- //   return books;
-  //  return null;
-  }*/
-
   public List<Book> arrange() {
-    //return books.stream().sorted().collect(Collectors.toList());
     return arrange(Comparator.naturalOrder());
   }
 
-  public List<Book> arrange(Comparator<Book> criteria) {
-    return books.stream().sorted(criteria).collect(Collectors.toList());
+  public List<Book> arrange(Comparator<Book> reversed) {
+    return books.stream().sorted(reversed).collect(Collectors.toList());
   }
 
   public Map<Year, List<Book>> groupByPublicationYear() {

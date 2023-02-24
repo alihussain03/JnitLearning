@@ -39,6 +39,6 @@ public class Book implements Comparable<Book> {
   public int compareTo(Book that) {
     return this.title.compareTo(that.title);
   }
-
-
 }
+
+
