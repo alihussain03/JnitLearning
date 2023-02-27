@@ -1,6 +1,7 @@
 package bookstoread;
 
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 import java.time.Year;
 import java.util.ArrayList;
@@ -10,7 +11,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class BookShelf {
 
@@ -33,7 +33,7 @@ public class BookShelf {
   }
 
   public List<Book> arrange(Comparator<Book> reversed) {
-    return books.stream().sorted(reversed).collect(Collectors.toList());
+    return books.stream().sorted(reversed).collect(toList());
   }
 
   public Map<Year, List<Book>> groupByPublicationYear() {
@@ -44,5 +44,28 @@ public class BookShelf {
     return books
         .stream()
         .collect(groupingBy(fx));
+  }
+
+  /*public Progress progress() {
+    return new Progress(0, 100, 0);
+  }*/
+
+  public Progress progress() {
+    int booksRead = Long.valueOf(books.stream().filter(Book::isRead).count()).intValue();
+    int booksToRead = books.size() - booksRead;
+    int percentageCompleted = booksRead * 100 / books.size();
+    int percentageToRead = booksToRead * 100 / books.size();
+    return new Progress(percentageCompleted, percentageToRead, 0);
+  }
+
+  public List<Book> findBooksByTitle(String code) {
+    return findBooksByTitle(code, b -> true);
+  }
+
+  public List<Book> findBooksByTitle(String title, BookFilter filter) {
+    return books.stream()
+        .filter(b -> b.getTitle().toLowerCase().contains(title))
+        .filter(b -> filter.apply(b))
+        .collect(toList());
   }
 }

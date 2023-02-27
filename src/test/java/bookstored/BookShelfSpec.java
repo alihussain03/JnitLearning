@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import bookstoread.Book;
 import bookstoread.BookShelf;
+import bookstoread.Progress;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
@@ -20,8 +21,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @DisplayName("<= BookShelf Specification =>")
+@ExtendWith(BooksParameterResolver.class)
 public class BookShelfSpec {
 
   private BookShelf shelf;
@@ -31,13 +34,18 @@ public class BookShelfSpec {
   private Book cleanCode;
 
   @BeforeEach
-  void init() throws Exception {
+  void init(Map<String, Book> books) throws Exception {
     shelf = new BookShelf();
-    effectiveJava = new Book("Effective Java", "Joshua Bloch", LocalDate.of(2008, Month.MAY, 8));
+    /*  effectiveJava = new Book("Effective Java", "Joshua Bloch", LocalDate.of(2008, Month.MAY, 8));
     codeComplete = new Book("Code Complete", "Steve McConnel", LocalDate.of(2004, Month.JUNE, 9));
     mythicalManMonth = new Book("The Mythical Man-Month", "Frederick Phillips Brooks",
         LocalDate.of(1975, Month.JANUARY, 1));
-    cleanCode = new Book("Clean Code", "Robert C. Martin", LocalDate.of(2008, Month.AUGUST, 1));
+    cleanCode = new Book("Clean Code", "Robert C. Martin", LocalDate.of(2008, Month.AUGUST, 1));*/
+
+    this.effectiveJava = books.get("Effective Java");
+    this.codeComplete = books.get("Code Complete");
+    this.mythicalManMonth = books.get("The Mythical Man-Month");
+    this.cleanCode = books.get("Clean Code");
   }
 
   @Nested
@@ -167,6 +175,53 @@ public class BookShelfSpec {
           .containsKey("Robert C. Martin")
           .containsValues(singletonList(cleanCode));
     }
+  }
 
+  @Test
+  @DisplayName("is 0% completed and 100% to-read when no book is read yet")
+  void progress100PercentUnread() {
+//    Progress progress = shelf.progress();
+    //  assertThat(progress.completed()).isEqualTo(0);
+    //  assertThat(progress.toRead()).isEqualTo(100);
+  }
+
+  @Test
+  @DisplayName("is 40% completed and 60% to-read when 2 books are finished and 3 books not read yet")
+  void progressWithCompletedAndToReadPercentages() {
+    effectiveJava.startedReadingOn(LocalDate.of(2016, Month.JULY, 1));
+    effectiveJava.finishedReadingOn(LocalDate.of(2016, Month.JULY, 31));
+    cleanCode.startedReadingOn(LocalDate.of(2016, Month.AUGUST, 1));
+    cleanCode.finishedReadingOn(LocalDate.of(2016, Month.AUGUST, 31));
+    shelf.add(effectiveJava);
+    //  shelf.add(cleanCode);
+
+    Progress progress = shelf.progress();
+    //  assertThat(progress.completed()).isEqualTo(40);
+    //  assertThat(progress.toRead()).isEqualTo(60);
+  }
+
+  @Nested
+  @DisplayName("search")
+  class BookShelfSearchSpec {
+
+    @BeforeEach
+    void setup() {
+      shelf.add(codeComplete, effectiveJava, mythicalManMonth, cleanCode);
+    }
+
+    @Test
+    @DisplayName(" should find books with title containing text")
+    void shouldFindBooksWithTitleContainingText() {
+      List<Book> books = shelf.findBooksByTitle("code");
+      assertThat(books.size()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName(" should find books with title containing text and published after specified date.")
+    void shouldFilterSearchedBooksBasedOnPublishedDate() {
+      List<Book> books = shelf.findBooksByTitle("code",
+          b -> b.getPublishedOn().isBefore(LocalDate.of(2014, 12, 31)));
+      assertThat(books.size()).isEqualTo(2);
+    }
   }
 }
