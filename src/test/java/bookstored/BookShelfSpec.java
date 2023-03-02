@@ -4,15 +4,20 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import bookstoread.Book;
 import bookstoread.BookShelf;
+import bookstoread.BookShelfCapacityReached;
 import bookstoread.Progress;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -20,11 +25,13 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @DisplayName("<= BookShelf Specification =>")
 @ExtendWith(BooksParameterResolver.class)
+@ExtendWith(LoggingTestExecutionExceptionHandler.class)
 public class BookShelfSpec {
 
   private BookShelf shelf;
@@ -223,5 +230,37 @@ public class BookShelfSpec {
           b -> b.getPublishedOn().isBefore(LocalDate.of(2014, 12, 31)));
       assertThat(books.size()).isEqualTo(2);
     }
+  }
+
+  /*
+  @Test
+  void throwsExceptionWhenBooksAreAddedAfterCapacityIsReached() {
+    BookShelf bookShelf = new BookShelf(2);
+    bookShelf.add(effectiveJava, codeComplete);
+    try {
+      bookShelf.add(mythicalManMonth);
+      fail("Should throw BookShelfCapacityReached exception as more books are added than shelf capacity.");
+    } catch (BookShelfCapacityReached expected) {
+      assertEquals("BookShelf capacity of 2 is reached. You can't add more books.",
+          expected.getMessage());
+    }
+  }
+   */
+
+  @Test
+  void throwsExceptionWhenBooksAreAddedAfterCapacityIsReached() {
+    BookShelf bookShelf = new BookShelf(2);
+    bookShelf.add(effectiveJava, codeComplete);
+    BookShelfCapacityReached throwException = assertThrows(BookShelfCapacityReached.class, () -> bookShelf.add(mythicalManMonth));
+    assertEquals("BookShelf capacity of 2 is reached. You can't add more books.", throwException.getMessage());
+  }
+
+  @Test
+  @RepeatedTest(value = 10, name = "i_am_a_repeated_test__{currentRepetition}/{totalRepetitions}")
+  void test_should_complete_in_one_second() {
+ //   assertTimeout(Duration.of(1, ChronoUnit.SECONDS), () -> Thread.sleep(1000));
+
+    String message = assertTimeout(Duration.of(1, ChronoUnit.SECONDS), () -> "Hello, World!");
+    assertEquals("Hello, World!", message);
   }
 }
